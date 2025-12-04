@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Restaurant Menu</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css?family=Quicksand:400,700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="theme-bg"></div>
+  <div class="menu-container">
+    <h2><span class="icon">🥗</span> VS Restaurant</h2>
+    <form id="addForm" autocomplete="off">
+      <input id="name" type="text" placeholder="Dish Name" required>
+      <input id="price" type="number" placeholder="Price" required>
+      <button type="submit" class="add-btn">Add +</button>
+    </form>
+    <ul id="menuList"></ul>
+  </div>
+  <footer>
+    <span>&copy; 2025 - Powered by V techie <span style="color:#569950">VS Restaurant</span></span>
+  </footer>
+  <script>
+    function fetchMenu() {
+      fetch("http://localhost:8080/api/menu")
+        .then(resp => resp.json())
+        .then(data => {
+          const menuList = document.getElementById('menuList');
+          menuList.innerHTML = '';
+          data.forEach(item => {
+            const li = document.createElement('li');
+            li.className = "menu-card";
+            li.innerHTML = `
+              <div class="item-info">
+                <span class="dish-name">${item.name}</span>
+                <span class="dish-price">₹${item.price}</span>
+              </div>
+              <button class="del-btn" onclick="deleteItem(${item.id})">Delete</button>
+            `;
+            menuList.appendChild(li);
+          });
+        });
+    }
+
+    document.getElementById('addForm').onsubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const price = document.getElementById('price').value;
+      if (!name || !price) return;
+      fetch("http://localhost:8080/api/menu", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({name, price}),
+      })
+      .then(() => {
+        fetchMenu();
+        this.reset();
+      });
+    };
+
+    function deleteItem(id) {
+      fetch(`http://localhost:8080/api/menu/${id}`, {
+        method: "DELETE"
+      }).then(fetchMenu);
+    }
+    window.deleteItem = deleteItem;
+    fetchMenu();
+  </script>
+</body>
+</html>
